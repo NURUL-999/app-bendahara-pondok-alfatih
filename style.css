@@ -28,7 +28,7 @@ body {
 
 /* Sidebar Navigation Item States */
 .nav-item {
-  color: #a7f3d0; /* emerald-200 */
+  color: #a7f3d0;
 }
 
 .nav-item:hover {
@@ -37,7 +37,7 @@ body {
 }
 
 .nav-item.active {
-  background-color: #059669; /* emerald-600 */
+  background-color: #059669;
   color: #ffffff;
   box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.45);
 }

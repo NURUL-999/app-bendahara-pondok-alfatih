@@ -1,46 +1,35 @@
 # Alfatih - Bendahara
 
-**Alfatih - Bendahara** adalah aplikasi web pencatatan dan pelaporan keuangan santri yang dirancang dengan antarmuka modern, intuitif, serta sistem multi-peran (**Admin** dan **Wali Santri**).
-
----
+Aplikasi web pencatatan keuangan dan tabungan santri berbasis multi-peran (**Admin** dan **Wali Santri**).
 
 ## Fitur Utama
 
-1. **Sistem Autentikasi & Multi-Peran Otomatis**
-   - **Login Otomatis Sesuai Peran:** Sistem mengenali hak akses akun secara internal saat pengguna masuk (*Admin* maupun *Wali Santri*).
-   - **Create Account:** Pendaftaran akun baru dengan validasi kata sandi minimal 6 karakter serta syarat angka & simbol khusus untuk username Admin.
-   - **Reset Password:** Pemulihan kata sandi mandiri menggunakan verifikasi Username dan Nama Lengkap terdaftar.
-   - **Mode Demo:** Tombol akses cepat untuk mengecek seluruh fitur aplikasi tanpa perlu mendaftar akun terlebih dahulu.
+1. **Autentikasi & Manajemen Akun**
+   - **Login Otomatis Sesuai Peran:** Sistem membaca peran akun (`Admin` atau `Wali Santri`) secara internal saat tombol **Masuk** ditekan.
+   - **Validasi Akun Terdaftar:** Jika username belum terdaftar, pengguna otomatis diarahkan ke halaman **Create Account**.
+   - **Kelola Akun (Khusus Admin):** Admin dapat langsung membuatkan akun baru untuk **Wali Santri** maupun **Admin** langsung dari menu **Kelola Akun** tanpa harus keluar aplikasi.
+   - **Reset Password:** Pemulihan kata sandi berdasarkan kecocokan Username dan Nama Lengkap terdaftar.
+   - **Coba Demo:** Akses cepat untuk mengecek seluruh fitur aplikasi.
 
-2. **Hak Akses Tegas (Admin vs Wali Santri)**
-   - **Admin:** Memiliki akses penuh pada menu **Beranda**, **Daftar Santri** (tambah/hapus santri satuan maupun massal, cek profil lengkap santri, serta input/edit/hapus catatan transaksi), dan **Hasil Laporan**.
-   - **Wali Santri (*Read-Only*):** Hanya dapat memantau perkembangan keuangan khusus milik santri yang namanya sesuai dengan akun yang login, serta mengunduh laporan tanpa bisa mengubah data.
+2. **Hak Akses Multi-Peran**
+   - **Admin:** Akses penuh pada menu **Beranda**, **Daftar Santri** (tambah santri, hapus santri satuan/banyak sekaligus, cek profil santri, input transaksi keuangan), **Hasil Laporan** (edit/hapus transaksi, filter per santri, ekspor Excel & PDF), serta **Kelola Akun**.
+   - **Wali Santri:** Akses *read-only* (hanya memantau) yang otomatis tersaring khusus untuk data santri milik nama akun yang login.
 
-3. **Input & Perhitungan Otomatis**
-   - Input nominal **Masuk** dan **Keluar** dilengkapi pemisah ribuan otomatis (titik) dengan batas minimal transaksi **Rp 5.000**.
-   - Kolom **Jumlah** terhitung secara otomatis berdasarkan nominal yang diinput.
+3. **Ekspor Laporan (Excel & PDF)**
+   - Nama file unduhan untuk **Wali Santri** otomatis memakai nama masing-masing (misalnya `Galih.xlsx` dan `Galih.pdf`).
+   - Cetakan **PDF** dilengkapi tanda tangan rata tengah (*center*) **Mengetahui, Muhammad Galih Assyafi**.
 
-4. **Hasil Laporan & Ekspor Dokumen (Excel & PDF)**
-   - Filter cepat berdasarkan nama santri maupun kolom pencarian tanggal/keterangan.
-   - **Export Excel (`.xlsx`)** dan **Export PDF (`.pdf`)** langsung dari browser.
-   - Nama file unduhan otomatis menyesuaikan nama **Wali Santri** yang sedang login (misalnya `Galih.pdf` / `Galih.xlsx`).
-   - Format cetak PDF dilengkapi bagian tanda tangan **Mengetahui — Muhammad Galih Assyafi** tepat di posisi tengah bawah laporan.
-
----
-
-## Struktur File Proyek
+## Struktur File
 
 ```text
 alfatih-bendahara/
-├── index.html      # Struktur utama antarmuka aplikasi (Login, Beranda, Daftar Santri, Hasil Laporan)
-├── style.css       # Pengaturan tampilan kustom, animasi, dan tata letak cetak
-├── script.js       # Logika aplikasi, manajemen peran, validasi form, dan generator Excel/PDF
-└── README.md       # Dokumentasi panduan penggunaan dan deploy aplikasi
+├── index.html   # Struktur halaman utama, autentikasi, dashboard & modal
+├── style.css    # Styling kustom, animasi transisi & scrollbar
+├── script.js    # Logika aplikasi, manajemen akun, filter & ekspor Excel/PDF
+└── README.md    # Dokumentasi aplikasi
 ```
 
----
-
-## Akun Pengujian Bawaan
+## Akun Bawaan (Pengujian)
 
 | Peran | Nama Lengkap | Username | Kata Sandi |
 | :--- | :--- | :--- | :--- |
@@ -48,17 +37,8 @@ alfatih-bendahara/
 | **Wali Santri** | Sahal | `sahal_123` | `password123` |
 | **Wali Santri** | Galih | `galih_123` | `password123` |
 
----
+## Cara Menjalankan & Deploy
 
-## Cara Menjalankan & Deploy Website
-
-### 1. Menjalankan di Komputer Lokal
-1. Pastikan seluruh file (`index.html`, `style.css`, `script.js`) berada dalam satu folder yang sama.
-2. Klik dua kali pada file `index.html` untuk membukanya langsung di browser (Chrome, Edge, Firefox, atau Safari).
-
-### 2. Publikasi ke Hosting Online
-Karena aplikasi ini berbasis HTML, CSS, dan JavaScript murni tanpa perlu konfigurasi server rumit, Anda dapat langsung mengunggah folder proyek ke layanan hosting berikut:
-- **Netlify Drop:** Seret dan lepas folder proyek ke [app.netlify.com/drop](https://app.netlify.com/drop).
-- **Vercel / Cloudflare Pages:** Hubungkan repositori atau unggah folder proyek untuk mendapatkan domain gratis.
-- **GitHub Pages:** Upload semua file ke repositori GitHub, lalu aktifkan **Pages** pada menu *Settings*.
-- **cPanel Hosting:** Unggah seluruh file ke dalam direktori `public_html`.
+1. Pastikan `index.html`, `style.css`, dan `script.js` berada dalam **satu folder yang sama**.
+2. Klik dua kali `index.html` untuk menjalankan langsung di browser.
+3. Untuk meng-online-kan, unggah seluruh isi folder ke **Netlify**, **Vercel**, **GitHub Pages**, atau **cPanel (`public_html`)**.

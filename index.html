@@ -273,6 +273,12 @@
             <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
             <span>Hasil Laporan</span>
           </button>
+
+          <button type="button" id="nav-kelola-akun" onclick="navigateTo('kelola-akun')"
+            class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition">
+            <i data-lucide="user-cog" class="w-5 h-5"></i>
+            <span>Kelola Akun</span>
+          </button>
         </nav>
       </div>
 
@@ -305,6 +311,11 @@
               class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
               <i data-lucide="plus-circle" class="w-4 h-4"></i>
               <span>Input Data Santri</span>
+            </button>
+            <button type="button" onclick="navigateTo('kelola-akun')"
+              class="px-4 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold text-xs sm:text-sm transition flex items-center gap-2">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Buat Akun Wali</span>
             </button>
             <button type="button" onclick="navigateTo('hasil-laporan')"
               class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition flex items-center gap-2">
@@ -578,6 +589,82 @@
               </thead>
               <tbody id="hasil-laporan-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION 4: KELOLA AKUN (ADMIN ONLY) ==================== -->
+      <section id="section-kelola-akun" class="hidden space-y-6 fade-in">
+        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+          <h2 class="text-2xl font-extrabold text-slate-900">Kelola Akun Pengguna &amp; Admin</h2>
+          <p class="text-sm text-slate-500 mt-1">Admin dapat langsung membuatkan akun untuk Wali Santri (Pengguna) maupun Admin baru tanpa harus keluar aplikasi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Form Buat Akun oleh Admin -->
+          <div class="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm h-fit">
+            <h3 class="text-base font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+              <i data-lucide="user-plus" class="w-5 h-5 text-emerald-700"></i>
+              <span>Buatkan Akun Baru</span>
+            </h3>
+
+            <form id="admin-create-user-form" class="space-y-4" onsubmit="handleAdminCreateUser(event)">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nama Santri / Lengkap</label>
+                <input type="text" id="admin-new-fullname" required placeholder="Contoh: Ahmad Fauzi"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-600 outline-none text-sm font-medium" />
+                <p class="text-[11px] text-slate-400 mt-1">Jika peran Wali Santri, nama otomatis ditambahkan ke Daftar Santri.</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Username</label>
+                <input type="text" id="admin-new-username" required placeholder="Contoh: ahmad_123"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-600 outline-none text-sm font-medium" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Kata Sandi</label>
+                <input type="text" id="admin-new-password" required minlength="6" placeholder="Minimal 6 karakter"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-600 outline-none text-sm font-medium" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Peran Akses</label>
+                <select id="admin-new-role"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-600 outline-none text-sm font-semibold text-slate-700">
+                  <option value="user" selected>Wali Santri (Hanya Lihat &amp; Cetak)</option>
+                  <option value="admin">Admin (Akses Penuh)</option>
+                </select>
+              </div>
+
+              <button type="submit"
+                class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>Simpan &amp; Buat Akun</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabel Daftar Akun Terdaftar -->
+          <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 class="font-extrabold text-base text-slate-900">Daftar Akun Terdaftar</h3>
+              <span id="total-accounts-badge" class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-extrabold">0 Akun</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200/80">
+                    <th class="py-3 px-4">Nama Lengkap</th>
+                    <th class="py-3 px-4">Username</th>
+                    <th class="py-3 px-4">Kata Sandi</th>
+                    <th class="py-3 px-4">Peran</th>
+                    <th class="py-3 px-4 text-center">Hapus</th>
+                  </tr>
+                </thead>
+                <tbody id="registered-users-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
