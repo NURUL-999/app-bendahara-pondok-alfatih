@@ -4,67 +4,19 @@
 
 // 1. INITIAL DATA & LOCAL STORAGE KEYS
 const STORAGE_KEYS = {
-  USERS: 'alfatih_bendahara_users_v1',
-  SANTRI: 'alfatih_bendahara_santri_v1',
-  REPORTS: 'alfatih_bendahara_reports_v1',
-  SESSION: 'alfatih_bendahara_session_v1'
+  USERS: 'alfatih_bendahara_users_v3',
+  SANTRI: 'alfatih_bendahara_santri_v3',
+  REPORTS: 'alfatih_bendahara_reports_v3',
+  SESSION: 'alfatih_bendahara_session_v3'
 };
 
 const DEFAULT_USERS = [
-  { username: 'riski_123', password: 'password123', fullName: 'Riski', role: 'admin' },
-  { username: 'sahal_123', password: 'password123', fullName: 'Sahal', role: 'user' },
-  { username: 'galih_123', password: 'password123', fullName: 'Galih', role: 'user' }
+  { username: 'riski_123', password: 'password123', fullName: 'Riski', role: 'admin' }
 ];
 
-const DEFAULT_SANTRI = ['Sahal', 'Galih', 'Ahmad Fauzi', 'Zaidan'];
+const DEFAULT_SANTRI = [];
 
-const DEFAULT_REPORTS = [
-  {
-    id: 'rep-101',
-    tanggal: '2026-11-01',
-    nama: 'Sahal',
-    masuk: 250000,
-    keluar: 0,
-    jumlah: 250000,
-    keterangan: 'Setoran awal tabungan bulan November'
-  },
-  {
-    id: 'rep-102',
-    tanggal: '2026-11-05',
-    nama: 'Sahal',
-    masuk: 0,
-    keluar: 45000,
-    jumlah: 45000,
-    keterangan: 'Pembelian kitab dan alat tulis'
-  },
-  {
-    id: 'rep-103',
-    tanggal: '2026-11-03',
-    nama: 'Galih',
-    masuk: 300000,
-    keluar: 0,
-    jumlah: 300000,
-    keterangan: 'Titipan uang saku bulanan'
-  },
-  {
-    id: 'rep-104',
-    tanggal: '2026-11-10',
-    nama: 'Galih',
-    masuk: 0,
-    keluar: 50000,
-    jumlah: 50000,
-    keterangan: 'Keperluan laundry & kebersihan'
-  },
-  {
-    id: 'rep-105',
-    tanggal: '2026-11-12',
-    nama: 'Ahmad Fauzi',
-    masuk: 200000,
-    keluar: 0,
-    jumlah: 200000,
-    keterangan: 'Setoran tabungan santri'
-  }
-];
+const DEFAULT_REPORTS = [];
 
 // Global State
 let registeredUsers = [];
@@ -79,10 +31,22 @@ let isSantriSelectMode = false;
 let selectedSantriForDelete = new Set();
 let openSantriMenuName = null;
 
+// Safe HTML & Attribute Escaping
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 2. INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
   loadAppData();
-  lucide.createIcons();
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 
   // Close open three-dot dropdowns when clicking outside
   document.addEventListener('click', (e) => {
@@ -100,28 +64,37 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       currentUser = JSON.parse(savedSession);
       enterDashboard();
-    } catch {
+    } catch (err) {
       sessionStorage.removeItem(STORAGE_KEYS.SESSION);
     }
   }
 });
 
 function loadAppData() {
-  const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-  const storedSantri = localStorage.getItem(STORAGE_KEYS.SANTRI);
-  const storedReports = localStorage.getItem(STORAGE_KEYS.REPORTS);
+  try {
+    const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
+    const storedSantri = localStorage.getItem(STORAGE_KEYS.SANTRI);
+    const storedReports = localStorage.getItem(STORAGE_KEYS.REPORTS);
 
-  registeredUsers = storedUsers ? JSON.parse(storedUsers) : [...DEFAULT_USERS];
-  santriDirectory = storedSantri ? JSON.parse(storedSantri) : [...DEFAULT_SANTRI];
-  reportItems = storedReports ? JSON.parse(storedReports) : [...DEFAULT_REPORTS];
-
-  saveAppData();
+    registeredUsers = storedUsers ? JSON.parse(storedUsers) : [...DEFAULT_USERS];
+    santriDirectory = storedSantri ? JSON.parse(storedSantri) : [...DEFAULT_SANTRI];
+    reportItems = storedReports ? JSON.parse(storedReports) : [...DEFAULT_REPORTS];
+    saveAppData();
+  } catch (e) {
+    registeredUsers = [...DEFAULT_USERS];
+    santriDirectory = [...DEFAULT_SANTRI];
+    reportItems = [...DEFAULT_REPORTS];
+  }
 }
 
 function saveAppData() {
-  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(registeredUsers));
-  localStorage.setItem(STORAGE_KEYS.SANTRI, JSON.stringify(santriDirectory));
-  localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reportItems));
+  try {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(registeredUsers));
+    localStorage.setItem(STORAGE_KEYS.SANTRI, JSON.stringify(santriDirectory));
+    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reportItems));
+  } catch (e) {
+    console.warn('LocalStorage tidak tersedia:', e);
+  }
 }
 
 // 3. HELPER FORMATTING & TOASTS
@@ -143,6 +116,7 @@ function parseFormattedNumber(str) {
 
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const toast = document.createElement('div');
 
   const styles = {
@@ -152,7 +126,7 @@ function showToast(message, type = 'success') {
   };
 
   toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold flex items-center gap-2.5 fade-in ${styles[type] || styles.info}`;
-  toast.innerHTML = `<span>${message}</span>`;
+  toast.textContent = message;
 
   container.appendChild(toast);
   setTimeout(() => {
@@ -168,7 +142,7 @@ function togglePasswordVisibility(inputId, btn) {
   const isPass = input.type === 'password';
   input.type = isPass ? 'text' : 'password';
   btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 // 4. AUTHENTICATION (LOGIN, CREATE ACCOUNT, RESET PASSWORD, DEMO)
@@ -178,7 +152,7 @@ function switchAuthView(viewName) {
   document.getElementById('view-reset').classList.add('hidden');
 
   document.getElementById(`view-${viewName}`).classList.remove('hidden');
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 function handleLogin(event) {
@@ -191,12 +165,11 @@ function handleLogin(event) {
     return;
   }
 
-  // Match registered user by username (case-insensitive) or fullName
   const matchedUser = registeredUsers.find(
     (u) => u.username.toLowerCase() === usernameInput.toLowerCase()
   );
 
-  // If account is NOT registered -> reject & redirect to Create Account
+  // Jika belum terdaftar, arahkan ke halaman Create Account
   if (!matchedUser) {
     showToast('Akun belum terdaftar! Silakan buat akun terlebih dahulu.', 'error');
     switchAuthView('register');
@@ -245,7 +218,6 @@ function handleRegister(event) {
     return;
   }
 
-  // Admin username validation: must contain at least one number and one symbol
   if (role === 'admin') {
     const hasNumber = /\d/.test(username);
     const hasSymbol = /[^a-zA-Z0-9]/.test(username);
@@ -263,16 +235,9 @@ function handleRegister(event) {
     return;
   }
 
-  const newUser = {
-    username,
-    password,
-    fullName,
-    role
-  };
-
+  const newUser = { username, password, fullName, role };
   registeredUsers.push(newUser);
 
-  // If Wali Santri registers, ensure their name exists in santriDirectory if not already present
   if (role === 'user') {
     const alreadyInSantri = santriDirectory.some(
       (s) => s.toLowerCase() === fullName.toLowerCase()
@@ -357,7 +322,6 @@ function enterDashboard() {
 
   const isAdmin = currentUser.role === 'admin';
 
-  // Sidebar User Info
   document.getElementById('sidebar-avatar').textContent = currentUser.fullName.charAt(0).toUpperCase();
   document.getElementById('sidebar-user-name').textContent = currentUser.fullName;
   document.getElementById('sidebar-user-role').textContent = currentUser.isDemo
@@ -367,19 +331,20 @@ function enterDashboard() {
     : 'Wali Santri';
   document.getElementById('mobile-role-subtitle').textContent = isAdmin ? 'Admin Bendahara' : 'Wali Santri';
 
-  // Role-based UI visibility
   const navDaftarSantri = document.getElementById('nav-daftar-santri');
+  const navKelolaAkun = document.getElementById('nav-kelola-akun');
   const berandaAdminActions = document.getElementById('beranda-admin-actions');
   const colAksiHeader = document.getElementById('col-aksi-header');
 
   if (isAdmin) {
     navDaftarSantri.classList.remove('hidden');
+    navKelolaAkun.classList.remove('hidden');
     berandaAdminActions.classList.remove('hidden');
     colAksiHeader.classList.remove('hidden');
     selectedSantriFilter = 'ALL';
   } else {
-    // Wali Santri: strict read-only & auto-filtered to their own name
     navDaftarSantri.classList.add('hidden');
+    navKelolaAkun.classList.add('hidden');
     berandaAdminActions.classList.add('hidden');
     colAksiHeader.classList.add('hidden');
     selectedSantriFilter = resolveWaliSantriName(currentUser);
@@ -390,13 +355,11 @@ function enterDashboard() {
 
 function resolveWaliSantriName(user) {
   if (!user) return '';
-  // 1. Check exact or partial match in santriDirectory using fullName
   const byFull = santriDirectory.find(
     (s) => s.toLowerCase() === user.fullName.toLowerCase()
   );
   if (byFull) return byFull;
 
-  // 2. Extract base name from username (e.g. "sahal_123" -> "sahal")
   const baseUsername = user.username.split(/[^a-zA-Z]/)[0].toLowerCase();
   if (baseUsername) {
     const byUser = santriDirectory.find(
@@ -425,32 +388,28 @@ function toggleMobileSidebar() {
 }
 
 function navigateTo(sectionName) {
-  // Prevent Wali Santri from accessing Daftar Santri
-  if (sectionName === 'daftar-santri' && currentUser?.role !== 'admin') {
+  if ((sectionName === 'daftar-santri' || sectionName === 'kelola-akun') && currentUser?.role !== 'admin') {
     sectionName = 'beranda';
   }
 
   activeSection = sectionName;
 
-  // Update active nav state
   document.querySelectorAll('.nav-item').forEach((btn) => btn.classList.remove('active'));
   const activeNavBtn = document.getElementById(`nav-${sectionName}`);
   if (activeNavBtn) activeNavBtn.classList.add('active');
 
-  // Toggle sections
   document.getElementById('section-beranda').classList.add('hidden');
   document.getElementById('section-daftar-santri').classList.add('hidden');
   document.getElementById('section-hasil-laporan').classList.add('hidden');
+  document.getElementById('section-kelola-akun').classList.add('hidden');
 
   document.getElementById(`section-${sectionName}`).classList.remove('hidden');
 
-  // Close mobile sidebar if open
   const sidebar = document.getElementById('sidebar');
   if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
     toggleMobileSidebar();
   }
 
-  // Render target section
   if (sectionName === 'beranda') {
     renderBeranda();
   } else if (sectionName === 'daftar-santri') {
@@ -458,9 +417,11 @@ function navigateTo(sectionName) {
     renderSantriDirectory();
   } else if (sectionName === 'hasil-laporan') {
     renderHasilLaporanSection();
+  } else if (sectionName === 'kelola-akun') {
+    renderRegisteredUsersTable();
   }
 
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 // 6. BERANDA RENDERING
@@ -498,11 +459,11 @@ function renderBeranda() {
     .map(
       (item) => `
       <tr class="hover:bg-slate-50/80 transition">
-        <td class="py-3.5 px-5 font-medium text-slate-600">${item.tanggal}</td>
-        <td class="py-3.5 px-5 font-bold text-slate-900">${item.nama}</td>
+        <td class="py-3.5 px-5 font-medium text-slate-600">${escapeHtml(item.tanggal)}</td>
+        <td class="py-3.5 px-5 font-bold text-slate-900">${escapeHtml(item.nama)}</td>
         <td class="py-3.5 px-5 font-bold text-emerald-700">${item.masuk > 0 ? formatRupiah(item.masuk) : '-'}</td>
         <td class="py-3.5 px-5 font-bold text-rose-600">${item.keluar > 0 ? formatRupiah(item.keluar) : '-'}</td>
-        <td class="py-3.5 px-5 text-slate-600">${item.keterangan}</td>
+        <td class="py-3.5 px-5 text-slate-600">${escapeHtml(item.keterangan)}</td>
       </tr>
     `
     )
@@ -523,7 +484,7 @@ function renderSantriDirectory() {
   }
 
   grid.innerHTML = santriDirectory
-    .map((nama) => {
+    .map((nama, idx) => {
       const santriReports = reportItems.filter((r) => r.nama.toLowerCase() === nama.toLowerCase());
       const masuk = santriReports.reduce((s, r) => s + r.masuk, 0);
       const keluar = santriReports.reduce((s, r) => s + r.keluar, 0);
@@ -531,10 +492,9 @@ function renderSantriDirectory() {
 
       const isChecked = selectedSantriForDelete.has(nama);
       const isMenuOpen = openSantriMenuName === nama;
-      const escapedNama = nama.replace(/'/g, "\'");
 
       return `
-        <div onclick="handleSantriCardClick('${escapedNama}')"
+        <div onclick="handleSantriCardClickByIndex(${idx})"
           class="relative bg-white p-5 rounded-3xl border ${
             isChecked ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200/90 hover:border-emerald-500'
           } shadow-sm hover:shadow-md transition cursor-pointer group">
@@ -543,21 +503,21 @@ function renderSantriDirectory() {
             <div class="flex items-center gap-3 min-w-0">
               ${
                 isSantriSelectMode
-                  ? `<input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectSingleSantri('${escapedNama}')"
+                  ? `<input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectSingleSantriByIndex(${idx})"
                       class="w-5 h-5 rounded-md accent-rose-600 cursor-pointer shrink-0" />`
                   : `<div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 group-hover:bg-emerald-700 group-hover:text-white font-extrabold text-base flex items-center justify-center transition shrink-0">
-                      ${nama.charAt(0).toUpperCase()}
+                      ${escapeHtml(nama.charAt(0).toUpperCase())}
                     </div>`
               }
               <div class="min-w-0">
-                <h3 class="font-extrabold text-base text-slate-900 truncate group-hover:text-emerald-800 transition">${nama}</h3>
+                <h3 class="font-extrabold text-base text-slate-900 truncate group-hover:text-emerald-800 transition">${escapeHtml(nama)}</h3>
                 <p class="text-xs text-slate-500 mt-0.5">${santriReports.length} catatan transaksi</p>
               </div>
             </div>
 
             <!-- Horizontal Three-Dot Menu (...) -->
             <div class="santri-menu-wrapper relative" onclick="event.stopPropagation()">
-              <button type="button" onclick="toggleSantriMenu('${escapedNama}')"
+              <button type="button" onclick="toggleSantriMenuByIndex(${idx})"
                 class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Opsi Santri">
                 <i data-lucide="more-horizontal" class="w-5 h-5"></i>
               </button>
@@ -565,12 +525,12 @@ function renderSantriDirectory() {
               ${
                 isMenuOpen
                   ? `<div class="absolute right-0 mt-1 w-40 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-20 fade-in">
-                      <button type="button" onclick="openSantriProfileModal('${escapedNama}')"
+                      <button type="button" onclick="openSantriProfileModalByIndex(${idx})"
                         class="w-full px-4 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2">
                         <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
                         <span>Cek Profil</span>
                       </button>
-                      <button type="button" onclick="confirmSingleDeleteSantri('${escapedNama}')"
+                      <button type="button" onclick="confirmSingleDeleteSantriByIndex(${idx})"
                         class="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         <span>Hapus</span>
@@ -590,18 +550,22 @@ function renderSantriDirectory() {
     })
     .join('');
 
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
-function handleSantriCardClick(nama) {
+function handleSantriCardClickByIndex(idx) {
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   if (isSantriSelectMode) {
-    toggleSelectSingleSantri(nama);
+    toggleSelectSingleSantriByIndex(idx);
     return;
   }
   openTambahDataFormForSantri(nama);
 }
 
-function toggleSantriMenu(nama) {
+function toggleSantriMenuByIndex(idx) {
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   openSantriMenuName = openSantriMenuName === nama ? null : nama;
   renderSantriDirectory();
 }
@@ -645,7 +609,9 @@ function toggleSantriSelectMode(forceState) {
   renderSantriDirectory();
 }
 
-function toggleSelectSingleSantri(nama) {
+function toggleSelectSingleSantriByIndex(idx) {
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   if (selectedSantriForDelete.has(nama)) {
     selectedSantriForDelete.delete(nama);
   } else {
@@ -689,7 +655,9 @@ function confirmBulkDeleteSantri() {
   );
 }
 
-function confirmSingleDeleteSantri(nama) {
+function confirmSingleDeleteSantriByIndex(idx) {
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   openSantriMenuName = null;
   renderSantriDirectory();
 
@@ -706,7 +674,9 @@ function confirmSingleDeleteSantri(nama) {
 }
 
 // Cek Profil Modal
-function openSantriProfileModal(nama) {
+function openSantriProfileModalByIndex(idx) {
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   openSantriMenuName = null;
   renderSantriDirectory();
 
@@ -736,7 +706,7 @@ function openSantriProfileModal(nama) {
   const modal = document.getElementById('santri-profile-modal');
   modal.classList.remove('hidden');
   modal.classList.add('modal-open');
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 function closeSantriProfileModal() {
@@ -756,7 +726,7 @@ function openTambahDataFormForSantri(nama) {
   document.getElementById('edit-record-id').value = '';
   document.getElementById('input-tanggal').value = new Date().toISOString().split('T')[0];
   document.getElementById('input-jumlah').value = '0';
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 function backToDaftarSantriList() {
@@ -821,7 +791,6 @@ function renderHasilLaporanSection() {
     selectedSantriFilter = resolveWaliSantriName(currentUser);
   }
 
-  // Build santri filter pills
   let pillsHtml = '';
   if (isAdmin) {
     const isAllActive = selectedSantriFilter === 'ALL';
@@ -841,19 +810,18 @@ function renderHasilLaporanSection() {
     ? santriDirectory
     : [resolveWaliSantriName(currentUser)];
 
-  displayedSantriList.forEach((nama) => {
+  displayedSantriList.forEach((nama, idx) => {
     const count = reportItems.filter((r) => r.nama.toLowerCase() === nama.toLowerCase()).length;
     const isActive = selectedSantriFilter.toLowerCase() === nama.toLowerCase();
-    const escapedNama = nama.replace(/'/g, "\'");
 
     pillsHtml += `
-      <button type="button" onclick="selectLaporanSantriFilter('${escapedNama}')"
+      <button type="button" onclick="selectLaporanSantriFilterByIndex(${idx})"
         class="px-4 py-2 rounded-xl text-xs font-extrabold border transition ${
           isActive
             ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50'
         }">
-        ${nama} (${count})
+        ${escapeHtml(nama)} (${count})
       </button>
     `;
   });
@@ -864,6 +832,14 @@ function renderHasilLaporanSection() {
 
 function selectLaporanSantriFilter(nama) {
   if (currentUser.role !== 'admin') return;
+  selectedSantriFilter = nama;
+  renderHasilLaporanSection();
+}
+
+function selectLaporanSantriFilterByIndex(idx) {
+  if (currentUser.role !== 'admin') return;
+  const nama = santriDirectory[idx];
+  if (!nama) return;
   selectedSantriFilter = nama;
   renderHasilLaporanSection();
 }
@@ -919,11 +895,11 @@ function renderHasilLaporanTable() {
       const actionCell = isAdmin
         ? `<td class="py-3.5 px-4 text-center whitespace-nowrap">
             <div class="inline-flex items-center gap-1.5">
-              <button type="button" onclick="openEditRecordModal('${item.id}')"
+              <button type="button" onclick="openEditRecordModal('${escapeHtml(item.id)}')"
                 class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 transition" title="Edit">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
               </button>
-              <button type="button" onclick="confirmDeleteRecord('${item.id}')"
+              <button type="button" onclick="confirmDeleteRecord('${escapeHtml(item.id)}')"
                 class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
@@ -934,19 +910,123 @@ function renderHasilLaporanTable() {
       return `
         <tr class="hover:bg-slate-50/90 transition">
           <td class="py-3.5 px-4 font-semibold text-slate-500">${idx + 1}</td>
-          <td class="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">${item.tanggal}</td>
-          <td class="py-3.5 px-4 font-bold text-slate-900">${item.nama}</td>
+          <td class="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">${escapeHtml(item.tanggal)}</td>
+          <td class="py-3.5 px-4 font-bold text-slate-900">${escapeHtml(item.nama)}</td>
           <td class="py-3.5 px-4 font-bold text-emerald-700 whitespace-nowrap">${item.masuk > 0 ? formatRupiah(item.masuk) : '-'}</td>
           <td class="py-3.5 px-4 font-bold text-rose-600 whitespace-nowrap">${item.keluar > 0 ? formatRupiah(item.keluar) : '-'}</td>
           <td class="py-3.5 px-4 font-extrabold text-slate-800 whitespace-nowrap">${formatRupiah(item.jumlah)}</td>
-          <td class="py-3.5 px-4 text-slate-600">${item.keterangan}</td>
+          <td class="py-3.5 px-4 text-slate-600">${escapeHtml(item.keterangan)}</td>
           ${actionCell}
         </tr>
       `;
     })
     .join('');
 
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
+}
+
+// 9. KELOLA AKUN (ADMIN BUATKAN AKUN PENGGUNA & ADMIN)
+function handleAdminCreateUser(event) {
+  event.preventDefault();
+  const fullName = document.getElementById('admin-new-fullname').value.trim();
+  const username = document.getElementById('admin-new-username').value.trim();
+  const password = document.getElementById('admin-new-password').value;
+  const role = document.getElementById('admin-new-role').value;
+
+  if (fullName.length < 2) {
+    showToast('Nama lengkap minimal 2 karakter.', 'error');
+    return;
+  }
+
+  if (password.length < 6) {
+    showToast('Kata sandi minimal 6 karakter.', 'error');
+    return;
+  }
+
+  if (role === 'admin') {
+    const hasNumber = /\d/.test(username);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(username);
+    if (!hasNumber || !hasSymbol) {
+      showToast('Username Admin wajib mengandung angka dan simbol (contoh: admin_01).', 'error');
+      return;
+    }
+  }
+
+  const exists = registeredUsers.some(
+    (u) => u.username.toLowerCase() === username.toLowerCase()
+  );
+  if (exists) {
+    showToast('Username sudah terdaftar. Gunakan username lain.', 'error');
+    return;
+  }
+
+  registeredUsers.push({ username, password, fullName, role });
+
+  if (role === 'user') {
+    const alreadyInSantri = santriDirectory.some(
+      (s) => s.toLowerCase() === fullName.toLowerCase()
+    );
+    if (!alreadyInSantri) {
+      santriDirectory.push(fullName);
+    }
+  }
+
+  saveAppData();
+  document.getElementById('admin-create-user-form').reset();
+  renderRegisteredUsersTable();
+  showToast(`Akun "${username}" untuk ${fullName} berhasil dibuat!`, 'success');
+}
+
+function renderRegisteredUsersTable() {
+  const tbody = document.getElementById('registered-users-tbody');
+  const badge = document.getElementById('total-accounts-badge');
+  badge.textContent = `${registeredUsers.length} Akun`;
+
+  tbody.innerHTML = registeredUsers
+    .map((u, idx) => {
+      const isAdminRole = u.role === 'admin';
+      const isSelf = currentUser && currentUser.username.toLowerCase() === u.username.toLowerCase();
+
+      return `
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(u.fullName)}</td>
+          <td class="py-3 px-4 font-semibold text-emerald-700">${escapeHtml(u.username)}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-600">${escapeHtml(u.password)}</td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
+              isAdminRole ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+            }">
+              ${isAdminRole ? 'Admin' : 'Wali Santri'}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            ${
+              isSelf
+                ? '<span class="text-[11px] text-slate-400 font-semibold">Aktif</span>'
+                : `<button type="button" onclick="confirmDeleteUserAccount(${idx})"
+                    class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition" title="Hapus Akun">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>`
+            }
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function confirmDeleteUserAccount(idx) {
+  const target = registeredUsers[idx];
+  if (!target) return;
+
+  openConfirmDeleteModal(`Hapus akun "${target.username}" (${target.fullName})?`, () => {
+    registeredUsers.splice(idx, 1);
+    saveAppData();
+    renderRegisteredUsersTable();
+    showToast(`Akun "${target.username}" telah dihapus.`, 'success');
+  });
 }
 
 // Edit & Delete Record (Admin)
@@ -1046,17 +1126,16 @@ function closeConfirmDeleteModal() {
   modal.classList.remove('modal-open');
 }
 
-// 9. EXPORT EXCEL & EXPORT PDF
+// 10. EXPORT EXCEL & EXPORT PDF
 function getExportFilename(extension) {
-  // Wali Santri gets automatic filename matching their own name (e.g., Galih.xlsx / Galih.pdf)
   if (currentUser && currentUser.role !== 'admin') {
-    const cleanName = currentUser.fullName.trim().replace(/[\/:*?"<>|]/g, '_');
+    const cleanName = currentUser.fullName.trim().replace(/[\\/:*?"<>|]/g, '_');
     return `${cleanName}.${extension}`;
   }
   const suffix =
     selectedSantriFilter === 'ALL'
       ? 'Semua_Santri'
-      : selectedSantriFilter.replace(/[\/:*?"<>|]/g, '_');
+      : selectedSantriFilter.replace(/[\\/:*?"<>|]/g, '_');
   return `Alfatih_Bendahara_${suffix}.${extension}`;
 }
 
@@ -1096,7 +1175,6 @@ function exportToPDF() {
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Header Kop Laporan
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(6, 95, 70);
@@ -1154,7 +1232,6 @@ function exportToPDF() {
     }
   });
 
-  // Signature Section: Centered "Mengetahui," & "Muhammad Galih Assyafi" (no Dibuat Oleh / Administrator)
   const finalY = doc.lastAutoTable.finalY || 120;
   const pageHeight = doc.internal.pageSize.getHeight();
   let signY = finalY + 18;
